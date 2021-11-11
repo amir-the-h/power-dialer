@@ -20,7 +20,7 @@ const app = express();
 const storage = require('./storage');
 
 // helper functions
-const { createCallFromIncomingCallRequest } = require('./helpers.js');
+const { findOrCreateCallFromIncomingCallRequest } = require('./helpers.js');
 const { STATUS_FAILED, DIRECTION_INBOUND } = require('./constants');
 
 // set views directory
@@ -73,11 +73,9 @@ app.post('/voice', (req, res) => {
     // it should be done by another function
   }
 
-  // create a twiml response and say hello
+  // create a twiml response and redirect call to waiting room
   const twiml = new twilio.twiml.VoiceResponse();
-  twiml.say({
-    loop: 0,
-  }, 'We are connecting your call...');
+  twiml.redirect('/waiting');
 
   // return the twiml response
   res.type('text/xml');
@@ -85,7 +83,7 @@ app.post('/voice', (req, res) => {
 });
 
 // incoming call status route
-app.post('/call/status', (req, res) => {
+app.post('/voice/status', (req, res) => {
   // log the incoming call status
   console.log('Incoming call status');
   console.dir(req.body);
@@ -111,7 +109,7 @@ app.post('/call/status', (req, res) => {
 });
 
 // call error route
-app.post('/call/fallback', (req, res) => {
+app.post('/voice/fallback', (req, res) => {
   // log the call error
   console.log('Call error');
   console.dir(req.body);
@@ -135,6 +133,38 @@ app.post('/call/fallback', (req, res) => {
 
   // return a success response
   res.sendStatus(200);
+});
+
+// waiting room route
+app.post('/waiting', (req, res) => {
+  // find the call in the storage
+  const call_sid = req.body.CallSid;
+  const call = storage.getCall(call_sid);
+  
+  // check if the call was not found
+  if (!call) {
+    // return a 404 not found
+    res.status(404).send('Call not found');
+    return;
+  }
+
+  // create a twiml response and say the wait message
+  const twiml = new twilio.twiml.VoiceResponse();
+
+  // say the wait message
+  twiml.say('Please wait while we connect your call...');
+
+  // wait for a while
+  twiml.pause({
+    length: 5,
+  });
+
+  // and redirect back here
+  twiml.redirect('/waiting');
+
+  // return the twiml response
+  res.type('text/xml');
+  res.send(twiml.toString());
 });
 
 // not found route

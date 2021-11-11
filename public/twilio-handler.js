@@ -137,19 +137,28 @@ makeCallButton.on("click", function () {
 
   // make a call if there is a valid number
   if (device !== null && validatePhoneNumber(phoneNumberInput.val())) {
+    addLog("Dialling " + phoneNumberInput.val());
     device.connect({
       params: {
         // to: "client:phone-app",
         To: phoneNumberInput.val(),
-        // Specify a name to be used when the call is put into a conference
-        name: "Power Dialer"
       }
+    }).then((call) => {
+      activeCall = call;
+      disableMakeCallButton();
+    }).catch((error) => {
+      addLog("Error connecting call: " + error.message);
+      activeCall = null;
+      disableHangupButton();
     });
   }
 });
 hangupCallButton.on("click", function () {
   // hangup the call if there is one
   if (activeCall !== null) {
-    activeCall.hangup();
+    console.log(activeCall)
+    activeCall.disconnect();
+    disableHangupButton();
+    enableMakeCallButton();
   }
 });
