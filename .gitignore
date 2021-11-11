@@ -1,0 +1,4 @@
+.env
+node_modules/
+public/fontawesome/
+public/twilio-voice.js

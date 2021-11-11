@@ -1,0 +1,35 @@
+{
+  "name": "power-dialer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.4",
+    "@twilio/voice-sdk": "^2.0.1",
+    "body-parser": "^1.19.0",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "pug": "^3.0.2",
+    "twilio": "^3.71.1"
+  },
+  "scripts": {
+    "install": "cp .env.example .env && cp -r node_modules/@fortawesome/fontawesome-free public/fontawesome && cp  node_modules/@twilio/voice-sdk/dist/twilio.min.js public/twilio.min.js",
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amir-the-h/power-dialer.git"
+  },
+  "author": "Amir Hosseini <amir@aloware.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amir-the-h/power-dialer/issues"
+  },
+  "homepage": "https://github.com/amir-the-h/power-dialer#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.3.11",
+    "tailwindcss": "^2.2.19"
+  }
+}

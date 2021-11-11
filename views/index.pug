@@ -1,0 +1,30 @@
+html
+  head
+    meta(charset="UTF-8")
+    link(rel="stylesheet", href="/app.css")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    script(defer src="/fontawesome/js/all.min.js")
+    script(defer src="/twilio.min.js")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    title Power Dialer
+  body
+    div(class="container mx-auto")
+      div(class="min-h-screen bg-gray-100 dark:bg-gray-900 md:space-x-4 flex flex-col-reverse md:flex-row")
+        div(class="p-4 md:flex-grow-0 md:w-1/4 text-center text-gray-900 dark:text-gray-100 border-t-2 md:border-t-0 md:border-r-2 border-gray-700 dark:border-gray-300")
+          button(id="powerOn" class="py-2 px-5 md:px-3 bg-transparent border-2 w-full border-green-500 text-green-500 text-lg rounded-lg transition-colors duration-700 transform hover:bg-green-500 hover:text-gray-100 focus:border-4 focus:border-green-300 disabled:opacity-50")
+            i(class="fas fa-power-off fa-2x")
+          div(id="phoneControls" class="hidden flex flex-col justefy-end space-y-4")
+            div(class="flex flex-row justify-center")
+              input(class="w-full p-4 text-center bg-transparent border-none" placeholder="Enter phone number" type="phone" id="phoneNumber")
+            div(class="flex flex-row justify-center space-x-4")
+              button(id="makeCall" class="py-2 px-5 md:px-3 bg-transparent border-2 border-green-500 text-green-500 text-lg rounded-lg transition-colors duration-700 transform hover:bg-green-500 hover:text-gray-100 focus:border-4 focus:border-green-300")
+                i(class="fas fa-phone-alt fa-2x")
+              button(id="hangupCall" class="py-2 px-5 md:px-3 bg-transparent border-2 border-red-500 text-red-500 text-lg rounded-lg transition-colors duration-700 transform hover:bg-red-500 hover:text-gray-100 focus:border-4 focus:border-red-300")
+                i(class="fas fa-phone-slash fa-2x")
+        div(class="p-4 flex-grow md:w-3/4 text-center text-gray-900 dark:text-gray-100")
+          p(class="md:text-2xl text-4xl mb-2") Logs
+          div(id="logs" class="text-lx break-words") Enable the phone by clicking the button on power button.
+    script.
+      const token = "#{token}";
+    script(defer src="/twilio-handler.js")
+        
