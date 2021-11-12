@@ -1,13 +1,17 @@
 // call instance of storage
 const call_instance = {
+  id: 0,
   sid: '',
   status: '',
   direction: '',
   from: '',
   to: '',
   duration: 0,
-  start_timestamp: 0,
-  end_timestamp: 0,
+  answered_at: 0,
+  called_at: 0,
+  started_at: 0,
+  ended_at: 0,
+  logs: []
 };
 
 // directions of call

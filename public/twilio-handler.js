@@ -84,6 +84,14 @@ function addDeviceListeners(device) {
     enablePowerOnButton();
   });
 
+  device.on("disconnect", function () {
+    addLog("Twilio device Disconnected.");
+    // disable controls
+    phoneControlsDiv.addClass("hidden")
+    // enable power on button
+    enablePowerOnButton();
+  });
+
   device.on("incoming", handleIncomingCall);
 }
 
@@ -94,30 +102,34 @@ function handleIncomingCall(incomingCall) {
   activeCall = incomingCall;
   enableBothControls();
 
-  incomingCall.on("error", function (error) {
-    addLog("Error on incoming call: " + error.message);
-    activeCall = null;
-    disableHangupButton();
-  });
-  incomingCall.on("accepted", function () {
-    addLog("Call accepted by " + incomingCall.from);
-    activeCall = null;
+  incomingCall.on("accept", function () {
+    addLog("Call from " + incomingCall.from + " accepted");
+    enableHangupButton();
     disableMakeCallButton();
   });
-  incomingCall.on("rejected", function () {
-    addLog("Call rejected by " + incomingCall.from);
-    activeCall = null;
+  incomingCall.on("cancel", function () {
+    addLog("Call from " + incomingCall.from + " cancelled");
     disableHangupButton();
+    enableMakeCallButton();
   });
-  incomingCall.on("cancelled", function () {
-    addLog("Call cancelled by " + incomingCall.from);
-    activeCall = null;
+  incomingCall.on("disconnect", function () {
+    addLog("Call from " + incomingCall.from + " disconnected");
     disableHangupButton();
+    enableMakeCallButton();
   });
-  incomingCall.on("ended", function (response) {
-    addLog("Call ended by " + incomingCall.from + ": " + response);
-    activeCall = null;
+  incomingCall.on("error", function (error) {
+    addLog("Call from " + incomingCall.from + " error: " + error.message);
     disableHangupButton();
+    enableMakeCallButton();
+  });
+  incomingCall.on("mute", function (isMuted, call) {
+    addLog("Call from " + incomingCall.from + " muted: " + isMuted);
+    // add mute button control
+  });
+  incomingCall.on("reject", function () {
+    addLog("Call from " + incomingCall.from + " rejected");
+    disableHangupButton();
+    enableMakeCallButton();
   });
 }
 
@@ -137,7 +149,6 @@ makeCallButton.on("click", function () {
 
   // make a call if there is a valid number
   if (device !== null && validatePhoneNumber(phoneNumberInput.val())) {
-    addLog("Dialling " + phoneNumberInput.val());
     device.connect({
       params: {
         // to: "client:phone-app",
@@ -146,17 +157,19 @@ makeCallButton.on("click", function () {
     }).then((call) => {
       activeCall = call;
       disableMakeCallButton();
+      enableHangupButton();
     }).catch((error) => {
       addLog("Error connecting call: " + error.message);
       activeCall = null;
       disableHangupButton();
+      enableMakeCallButton();
     });
   }
 });
 hangupCallButton.on("click", function () {
   // hangup the call if there is one
   if (activeCall !== null) {
-    console.log(activeCall)
+    addLog("Hanging up call");
     activeCall.disconnect();
     disableHangupButton();
     enableMakeCallButton();

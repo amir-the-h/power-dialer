@@ -1,4 +1,4 @@
-const {DIRECTION_INBOUND, DIRECTION_OUTBOUND} = require('./constants');
+const {DIRECTION_INBOUND, DIRECTION_OUTBOUND, call_instance} = require('./constants');
 
 // in-memory storage for calls
 const calls = {
@@ -21,14 +21,36 @@ const calls = {
     this.unlockState();
     return data;
   },
+  newCall: function(direction, from, to, status, sid) {
+    this.lockState();
+    const call_object = JSON.parse(JSON.stringify(call_instance))
+    const call = Object.assign(call_object, {
+      id: this.calls.length + 1,
+      sid: sid,
+      direction: direction,
+      status: status,
+      started_at: Date.now(),
+      from: from,
+      to: to,
+    });
+    this.calls.push(call);
+    this.unlockState();
+    return call;
+  },
   addCall: function (call) {
     this.lockState();
     this.calls.push(call);
     this.unlockState();
   },
-  getCall: function (call_sid) {
+  getCall: function (id) {
     this.lockState();
-    const data = this.calls.find(call => call.sid === call_sid);
+    const data = this.calls.find(call => call.id === (+id));
+    this.unlockState();
+    return data;
+  },
+  getCallBySid: function (sid) {
+    this.lockState();
+    const data = this.calls.find(call => call.sid === sid);
     this.unlockState();
     return data;
   },
@@ -50,15 +72,9 @@ const calls = {
     this.unlockState();
     return data;
   },
-  updateCall: function (call_sid, call) {
+  removeCall: function (id) {
     this.lockState();
-    const index = this.calls.findIndex(call => call.sid === call_sid);
-    this.calls[index] = call;
-    this.unlockState();
-  },
-  removeCall: function (call_sid) {
-    this.lockState();
-    this.calls = this.calls.filter(call => call.call_sid !== call_sid);
+    this.calls = this.calls.filter(call => call.id !== id);
     this.unlockState();
   },
 };
