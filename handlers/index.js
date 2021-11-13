@@ -1,7 +1,7 @@
 const homePage = require('./home_page');
-const telephony = require('./telephony');
+const makeCall = require('./make_call')
 
 module.exports = {
   homePage,
-  telephony,
+  makeCall,
 }

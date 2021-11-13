@@ -98,9 +98,12 @@ function addDeviceListeners(device) {
 // handle incoming calls
 function handleIncomingCall(incomingCall) {
   addLog("Incoming call from " + incomingCall.from);
-  // setup the call and enable accept and hangup buttons
+  // accept the incoming call
+  incomingCall.accept();
+  // setup the call for further use
   activeCall = incomingCall;
-  enableBothControls();
+  disableMakeCallButton();
+  enableHangupButton();
 
   incomingCall.on("accept", function () {
     addLog("Call from " + incomingCall.from + " accepted");
@@ -149,21 +152,35 @@ makeCallButton.on("click", function () {
 
   // make a call if there is a valid number
   if (device !== null && validatePhoneNumber(phoneNumberInput.val())) {
-    device.connect({
-      params: {
-        // to: "client:phone-app",
-        To: phoneNumberInput.val(),
-      }
-    }).then((call) => {
-      activeCall = call;
-      disableMakeCallButton();
-      enableHangupButton();
-    }).catch((error) => {
-      addLog("Error connecting call: " + error.message);
-      activeCall = null;
-      disableHangupButton();
+    disableBothControls();
+    // make an post request to the server to make the call
+    $.post("/call", {
+      phoneNumber: phoneNumberInput.val(),
+      clientId: identity,
+    }).done(function (data) {
+      console.log(data);
+      addLog("Call request to " + phoneNumberInput.val() + " successfully sent.");
+    }).fail(function (error) {
+      console.error(error);
+      addLog("Call request to " + phoneNumberInput.val() + " failed: " + error.message);
       enableMakeCallButton();
     });
+
+    // device.connect({
+    //   params: {
+    //     // to: "client:phone-app",
+    //     To: phoneNumberInput.val(),
+    //   }
+    // }).then((call) => {
+    //   activeCall = call;
+    //   disableMakeCallButton();
+    //   enableHangupButton();
+    // }).catch((error) => {
+    //   addLog("Error connecting call: " + error.message);
+    //   activeCall = null;
+    //   disableHangupButton();
+    //   enableMakeCallButton();
+    // });
   }
 });
 hangupCallButton.on("click", function () {
