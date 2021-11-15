@@ -97,40 +97,38 @@ function addDeviceListeners(device) {
 
 // handle incoming calls
 function handleIncomingCall(incomingCall) {
-  addLog("Incoming call from " + incomingCall.from);
+  addLog("New incoming call");
   // accept the incoming call
   incomingCall.accept();
   // setup the call for further use
   activeCall = incomingCall;
-  disableMakeCallButton();
-  enableHangupButton();
 
-  incomingCall.on("accept", function () {
-    addLog("Call from " + incomingCall.from + " accepted");
+  activeCall.on("accept", function () {
+    addLog("Call accepted");
     enableHangupButton();
-    disableMakeCallButton();
+    // disableMakeCallButton();
   });
-  incomingCall.on("cancel", function () {
-    addLog("Call from " + incomingCall.from + " cancelled");
+  activeCall.on("cancel", function () {
+    addLog("Call cancelled");
     disableHangupButton();
     enableMakeCallButton();
   });
-  incomingCall.on("disconnect", function () {
-    addLog("Call from " + incomingCall.from + " disconnected");
+  activeCall.on("disconnect", function () {
+    addLog("Call disconnected");
     disableHangupButton();
     enableMakeCallButton();
   });
-  incomingCall.on("error", function (error) {
-    addLog("Call from " + incomingCall.from + " error: " + error.message);
+  activeCall.on("error", function (error) {
+    addLog("Call error: " + error.message);
     disableHangupButton();
     enableMakeCallButton();
   });
-  incomingCall.on("mute", function (isMuted, call) {
-    addLog("Call from " + incomingCall.from + " muted: " + isMuted);
+  activeCall.on("mute", function (isMuted, call) {
+    addLog("Call muted: " + isMuted);
     // add mute button control
   });
-  incomingCall.on("reject", function () {
-    addLog("Call from " + incomingCall.from + " rejected");
+  activeCall.on("reject", function () {
+    addLog("Call rejected");
     disableHangupButton();
     enableMakeCallButton();
   });
@@ -160,6 +158,7 @@ makeCallButton.on("click", function () {
     }).done(function (data) {
       console.log(data);
       addLog("Call request to " + phoneNumberInput.val() + " successfully sent.");
+      enableMakeCallButton();
     }).fail(function (error) {
       console.error(error);
       addLog("Call request to " + phoneNumberInput.val() + " failed: " + error.message);

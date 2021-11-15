@@ -14,7 +14,7 @@ app.use(express.static(__dirname + '/public'));
 app.use(bodyParser);
 
 // routes
-app.get('/', handlers.homePage);
+app.get('/', handlers.webrtc);
 // make outbound call
 app.post('/call', handlers.makeCall);
 

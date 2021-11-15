@@ -9,7 +9,7 @@ function validatePhoneNumber(phoneNumber) {
 }
 
 // generate conference room name
-function generateConferenceRoomName(call) {
+function generateConferenceName(call) {
   return `conference-${call.id}`;
 }
 
@@ -28,7 +28,7 @@ function makeCallToAgent(clientId) {
   return new Promise((resolve, reject) => {
     // create a new outbound call
     const agentCall = storage.newCall(DIRECTION_OUTBOUND, process.env.TWILIO_CALLER_ID, clientId);
-    agentCall.conference_room = generateConferenceRoomName(agentCall);
+    agentCall.conference.friendlyName = generateConferenceName(agentCall);
     // log the step
     logCallStep(agentCall, `Calling Agent ${clientId}`);
     // create a twiml response
@@ -40,7 +40,7 @@ function makeCallToAgent(clientId) {
       endConferenceOnExit: true,
       participantLabel: PARTICIPANT_AGENT,
       waitUrl: 'https://twimlets.com/holdmusic?Bucket=com.twilio.music.guitars&Message=we%20are%20dialing%20out.%20stay%20on%20the%20line.'
-    }, agentCall.conference_room);
+    }, agentCall.conference.friendlyName);
 
     // now make a call to the agent
     client.calls.create({
@@ -50,12 +50,12 @@ function makeCallToAgent(clientId) {
     }).then(outboundCall => {
       // log the step
       logCallStep(agentCall, `Call to Agent ${clientId} initiated`);
-      
+
       // update the call object with the outbound call
       agentCall.sid = outboundCall.sid;
       agentCall.status = outboundCall.status;
-      agentCall.called_at = Date.now();
-      
+      agentCall.calledAt = Date.now();
+
       // resolve the promise
       resolve(agentCall);
     }).catch(err => {
@@ -64,7 +64,7 @@ function makeCallToAgent(clientId) {
 
       // update agent call status
       agentCall.status = 'failed';
-      agentCall.ended_at = Date.now();
+      agentCall.endedAt = Date.now();
 
       // reject the promise
       reject(err);
@@ -87,9 +87,9 @@ function dropCall(call, reason) {
         logCallStep(call, `Call dropped: ${reason}`);
 
         // update call timestamp
-        call.ended_at = Date.now();
+        call.endedAt = Date.now();
         // update the duration 
-        call.duration = (call.ended_at - call.called_at) / 1000;
+        call.duration = (call.endedAt - call.calledAt) / 1000;
         // update the status
         call.status = 'dropped';
 
@@ -119,7 +119,7 @@ function isCallInProgress(call) {
       .then(twilioCall => {
         // check if the call has been picked up
         if (call.status !== STATUS_IN_PROGRESS && twilioCall.status === STATUS_IN_PROGRESS) {
-          call.answered_at = Date.now();
+          call.answeredAt = Date.now();
           // log the step
           logCallStep(call, `Call answered`);
           // update the call status
@@ -147,14 +147,20 @@ function isCallInProgress(call) {
 }
 
 // dial the customer and add it to the conference
-function connectCustomerToConference(agentCall, phoneNumber) {
+function connectCustomerToConference(phoneNumber) {
   // make a new promise
   return new Promise((resolve, reject) => {
+    // get the active call
+    const activeCall = storage.getActiveCall();
+    if (!activeCall) {
+      // reject the promise
+      reject('No active call to add customer to');
+    }
     // create a new outbound call
     const customerCall = storage.newCall(DIRECTION_OUTBOUND, process.env.TWILIO_CALLER_ID, phoneNumber);
-    customerCall.conference_room = agentCall.conference_room;
+    customerCall.conference = activeCall.conference;
     // log the step
-    logCallStep(customerCall, `Dialing customer ${phoneNumber} into the conference ${customerCall.conference_room}`);
+    logCallStep(customerCall, `Dialing customer ${phoneNumber} into the conference ${customerCall.conference.friendlyName}`);
     // make twilio client
     const client = new twilio();
     // create a twiml response
@@ -164,7 +170,7 @@ function connectCustomerToConference(agentCall, phoneNumber) {
     dial.conference({
       startConferenceOnEnter: true,
       participantLabel: PARTICIPANT_CUSTOMER,
-    }, agentCall.conference_room);
+    }, customerCall.conference.friendlyName);
 
     // make a new outbound call to the customer
     client.calls.create({
@@ -175,12 +181,12 @@ function connectCustomerToConference(agentCall, phoneNumber) {
       .then((twilioCall) => {
         // log the step
         logCallStep(customerCall, `Call to customer initiated`);
-        
+
         // update the call object with the outbound call
         customerCall.sid = twilioCall.sid;
         customerCall.status = twilioCall.status;
-        customerCall.called_at = Date.now();
-        
+        customerCall.calledAt = Date.now();
+
         // resolve the promise
         resolve(customerCall);
       })
@@ -189,7 +195,7 @@ function connectCustomerToConference(agentCall, phoneNumber) {
         logCallStep(twilioCall, `Call to customer failed: ${err}`);
         // update agent call status
         twilioCall.status = 'failed';
-        twilioCall.ended_at = Date.now();
+        twilioCall.endedAt = Date.now();
         // reject the promise
         reject(err);
       })
@@ -248,14 +254,49 @@ function dropOrContinue(call, timeoutDelay, tickerDelay) {
   });
 }
 
+// get the conference info from twilio api by conference room name
+function getConferenceInfoByName(call) {
+  // make a new promise
+  return new Promise((resolve, reject) => {
+    // log the step
+    logCallStep(call, `Getting conference ${call.conference.friendlyName} info`);
+    // check call conference name is set
+    if (!call.conference.friendlyName) {
+      // log the step
+      logCallStep(call, `Conference name is not set`);
+      // reject the promise
+      reject(null);
+    }
+    // make twilio client
+    const client = new twilio();
+    // get the conference info
+    client.conferences.list({ friendlyName: call.conference.friendlyName, limit: 1 })
+      .then(conferences => conferences.forEach(conference => {
+        // add it to the agent call
+        call.conference = conference;
+        // log the step
+        logCallStep(call, `Got conference info`);
+        // resolve the promise
+        resolve(call);
+      }))
+      .catch(err => {
+        // log the step
+        logCallStep(call, `Getting conference info failed: ${err}`);
+        // reject the promise
+        reject(err);
+      });
+  });
+}
+
 // export all functions
 module.exports = {
   validatePhoneNumber,
-  generateConferenceRoomName,
+  generateConferenceName,
   logCallStep,
   makeCallToAgent,
   dropCall,
   isCallInProgress,
   connectCustomerToConference,
   dropOrContinue,
+  getConferenceInfoByName,
 };

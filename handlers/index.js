@@ -1,7 +1,7 @@
-const homePage = require('./home_page');
+const webrtc = require('./webrtc');
 const makeCall = require('./make_call')
 
 module.exports = {
-  homePage,
+  webrtc,
   makeCall,
 }

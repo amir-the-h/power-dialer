@@ -1,17 +1,19 @@
 // call instance of storage
-const call_instance = {
+const callInstance = {
   id: 0,
-  conference_room: '',
   sid: '',
   status: '',
   direction: '',
   from: '',
   to: '',
   duration: 0,
-  answered_at: 0,
-  called_at: 0,
-  started_at: 0,
-  ended_at: 0,
+  answeredAt: 0,
+  calledAt: 0,
+  startedAt: 0,
+  endedAt: 0,
+  conference: {
+    friendlyName: '',
+  },
   logs: []
 };
 
@@ -34,9 +36,13 @@ const STATUS_CANCELED = 'canceled';
 const PARTICIPANT_AGENT = 'Agent';
 const PARTICIPANT_CUSTOMER = 'Customer';
 
+// webrtc identities
+const WEBRTC_IDENTITY_AGENT = 'agent';
+const WEBRTC_IDENTITY_MODERATOR = 'moderator';
+
 // export all constants
 module.exports = {
-  call_instance,
+  callInstance,
   DIRECTION_INBOUND,
   DIRECTION_OUTBOUND,
   STATUS_INITIAL,
@@ -50,4 +56,6 @@ module.exports = {
   STATUS_CANCELED,
   PARTICIPANT_AGENT,
   PARTICIPANT_CUSTOMER,
+  WEBRTC_IDENTITY_AGENT,
+  WEBRTC_IDENTITY_MODERATOR,
 };
