@@ -21,7 +21,7 @@ module.exports = (req, res) => {
   call.endedAt = Date.now();
 
   // calculate the duration
-  call.duration = (call.endedAt - call.startedAt) / 1000;
+  call.duration = (call.endedAt - call.calledAt) / 1000;
   call.talkTime = (call.endedAt - call.answeredAt) / 1000;
   call.waitTime = call.duration - call.talkTime;
 
