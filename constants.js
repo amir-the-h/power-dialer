@@ -11,6 +11,7 @@ const callInstance = {
   calledAt: 0,
   startedAt: 0,
   endedAt: 0,
+  isAgent: false,
   conference: {
     friendlyName: '',
   },

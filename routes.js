@@ -17,6 +17,8 @@ app.use(bodyParser);
 app.get('/', handlers.webrtc);
 // make outbound call
 app.post('/call', handlers.makeCall);
+// call status
+app.post('/status/:callId', handlers.callStatus);
 
 // return a not found error on any other route
 app.all('*', (req, res) => {

@@ -29,6 +29,7 @@ function makeCallToAgent(clientId) {
     // create a new outbound call
     const agentCall = storage.newCall(DIRECTION_OUTBOUND, process.env.TWILIO_CALLER_ID, clientId);
     agentCall.conference.friendlyName = generateConferenceName(agentCall);
+    agentCall.isAgent = true;
     // log the step
     logCallStep(agentCall, `Calling Agent ${clientId}`);
     // create a twiml response
@@ -43,9 +44,12 @@ function makeCallToAgent(clientId) {
     }, agentCall.conference.friendlyName);
 
     // now make a call to the agent
+    // with setting status callback url alone, 
+    // twilio will only send a complete event regardless of the end cause of the call.
     client.calls.create({
       from: process.env.TWILIO_CALLER_ID,
       to: `client:${clientId}`,
+      statusCallback: `${process.env.BASE_URL}/status/${agentCall.id}`,
       twiml: twiml.toString(),
     }).then(outboundCall => {
       // log the step
@@ -176,6 +180,7 @@ function connectCustomerToConference(phoneNumber) {
     client.calls.create({
       from: process.env.TWILIO_CALLER_ID,
       to: phoneNumber,
+      statusCallback: `${process.env.BASE_URL}/status/${customerCall.id}`,
       twiml: twiml.toString(), // directly connect to conference
     })
       .then((twilioCall) => {

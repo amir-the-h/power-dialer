@@ -13,6 +13,12 @@ const calls = {
   unlockState() {
     this.lock = false;
   },
+  flushCall(call) {
+    this.lockState();
+    this.calls = this.calls.filter(c => c.id !== call.id);
+    this.unlockState();
+    // TODO: store in database
+  },
   getActiveCall() {
     this.lockState();
     const activeCall = this.activeCall;
