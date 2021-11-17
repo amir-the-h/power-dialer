@@ -7,6 +7,8 @@ const callInstance = {
   from: '',
   to: '',
   duration: 0,
+  talkTime: 0,
+  waitTime: 0,
   answeredAt: 0,
   calledAt: 0,
   startedAt: 0,
