@@ -1,10 +1,10 @@
-const {DIRECTION_INBOUND, DIRECTION_OUTBOUND, callInstance} = require('./constants');
+const { DIRECTION_INBOUND, DIRECTION_OUTBOUND, callInstance } = require('./constants');
 
 // in-memory storage for calls
-const calls = {
-  lock: false,
+module.exports = {
   calls: [],
   activeCall: null,
+  lock: false,
   lockState() {
     // wait until lock is released
     while (this.lock);
@@ -52,46 +52,44 @@ const calls = {
     this.unlockState();
     return call;
   },
-  addCall (call) {
+  addCall(call) {
     this.lockState();
     this.calls.push(call);
     this.unlockState();
   },
-  getCall (id) {
+  getCall(id) {
     this.lockState();
     const data = this.calls.find(call => call.id === (+id));
     this.unlockState();
     return data;
   },
-  getCallBySid (sid) {
+  getCallBySid(sid) {
     this.lockState();
     const data = this.calls.find(call => call.sid === sid);
     this.unlockState();
     return data;
   },
-  getCalls () {
+  getCalls() {
     this.lockState();
     const data = this.calls;
     this.unlockState();
     return data;
   },
-  getInboundCalls () {
+  getInboundCalls() {
     this.lockState();
     const data = this.calls.filter(call => call.direction === DIRECTION_INBOUND);
     this.unlockState();
     return data;
   },
-  getOutboundCalls () {
+  getOutboundCalls() {
     this.lockState();
     const data = this.calls.filter(call => call.direction === DIRECTION_OUTBOUND);
     this.unlockState();
     return data;
   },
-  removeCall (id) {
+  removeCall(id) {
     this.lockState();
     this.calls = this.calls.filter(call => call.id !== id);
     this.unlockState();
   },
 };
-
-module.exports = calls;

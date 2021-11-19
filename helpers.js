@@ -208,49 +208,48 @@ function connectCustomerToConference(phoneNumber) {
 }
 
 // drop the call or continue the call based on timeout or answer
-function dropOrContinue(call, timeoutDelay, tickerDelay) {
+function dropOrContinue(call, tickerDelay, maxTries) {
   // create a new promise
   // this will keep track of the agent call to determine when to drop the call
   // or when to dial the Customer
+
   return new Promise((resolve, reject) => {
     // log the step
     logCallStep(call, `Checking if call is timed out or answered`);
-    // time out flag
-    let timedOut = false;
 
-    // set a timeout to drop the call after 10 seconds
-    const timeout = setTimeout(() => {
-      // log the step
-      logCallStep(call, `Call timed out`);
-      dropCall(call, 'timeout')
+    let tryStep = 0;
+    let doneSteps = [];
+
+    // set a ticker to check if the call has been answered
+    const ticker = setInterval(() => {
+      // wait until last step is done
+      while (doneSteps.length < tryStep);
+      // hack to prevent the ticker from running more than max tries 
+      if (tryStep > +maxTries) {
+        return;
+      }
+      // check if reach max tries
+      if (tryStep === +maxTries) {
+        dropCall(call, 'timeout')
         .then(() => {
-          timedOut = true;
+          clearInterval(ticker);
           reject('timeout');
         })
         .catch((err) => {
-          timedOut = true;
-          console.log(err);
+          clearInterval(ticker);
           reject(err);
         });
-    }, timeoutDelay);
-
-    // set a ticker to check if the Agent picks up the call
-    const ticker = setInterval(() => {
-      if (timedOut) {
-        clearInterval(ticker);
-        clearTimeout(timeout);
-        return;
       }
       // log the step
       isCallInProgress(call)
         .then((updatedCall) => {
-          clearTimeout(timeout);
+          doneSteps.push(true);
           clearInterval(ticker);
           resolve(updatedCall);
         })
         .catch((err) => {
+          doneSteps.push(false);
           if (err !== null) {
-            clearTimeout(timeout);
             clearInterval(ticker);
             reject(err);
           }

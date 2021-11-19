@@ -13,7 +13,7 @@ module.exports = (req, res) => {
     // drop the customer call by timeout or continue to connect customer to conference
     connectCustomerToConference(phoneNumber)
       .then((customerCall) => {
-        dropOrContinue(customerCall, 10000, 1000)
+        dropOrContinue(customerCall, 1000, 10)
           .then((customerCall) => {
             // call in progress
             logCallStep(agentCall, 'Call in progress');
@@ -32,7 +32,7 @@ module.exports = (req, res) => {
     makeCallToAgent(clientId)
       .then((agentCall) => {
         // drop the agent call by timeout or continue to dialing customer
-        dropOrContinue(agentCall, 10000, 1000)
+        dropOrContinue(agentCall, 1000, 10)
           .then((agentCall) => {
             // get the conference info
             getConferenceInfoByName(agentCall)
@@ -42,7 +42,7 @@ module.exports = (req, res) => {
                 // drop the customer call by timeout or continue to connect customer to conference
                 connectCustomerToConference(phoneNumber)
                   .then((customerCall) => {
-                    dropOrContinue(customerCall, 10000, 1000)
+                    dropOrContinue(customerCall, 5000, 1000)
                       .then((customerCall) => {
                         // call in progress
                         logCallStep(agentCall, 'Call in progress');

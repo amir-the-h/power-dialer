@@ -21,8 +21,8 @@ module.exports = (req, res) => {
   call.endedAt = Date.now();
 
   // calculate the duration
-  call.duration = (call.endedAt - call.calledAt) / 1000;
-  call.talkTime = (call.endedAt - call.answeredAt) / 1000;
+  call.duration = call.endedAt - call.calledAt;
+  call.talkTime = call.answeredAt ? call.endedAt - call.answeredAt : 0;
   call.waitTime = call.duration - call.talkTime;
 
   // if its an agent call
@@ -38,7 +38,7 @@ module.exports = (req, res) => {
   storage.flushCall(call);
   
   // log the call end and duration in human readable format
-  logCallStep(call, `Call ended after ${formatDuration(call.duration)} while talked for ${formatDuration(call.talkTime)}`);
+  logCallStep(call, `Call ended after ${formatDuration(call.duration / 1000)} while talked for ${formatDuration(call.talkTime/ 1000)} and waited for ${formatDuration(call.waitTime / 1000)}`);
 
   // OK
   res.sendStatus(200);
